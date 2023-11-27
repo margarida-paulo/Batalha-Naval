@@ -1,5 +1,5 @@
 /**
- * Cria a legenda horizontal consuante o número de colunas.
+ * Cria a legenda horizontal consoante o número de colunas.
  * Validada pelo Drop Project, nao alterar.
  * @param numColunas Numero de colunas do tabuleiro.
  * @return String com a legenda horizontal.
@@ -111,9 +111,8 @@ fun escolhaOpcao(): Int{
  * @return ‘String’ com o tabuleiro de jogo.
  */
 fun criaTerreno(numLinhas: Int, numColunas: Int): String{
-    var tabuleiro = ""
     var contador = 0
-    tabuleiro += "\n| " + criaLegendaHorizontal(numColunas) + " |"
+    var tabuleiro = "\n| " + criaLegendaHorizontal(numColunas) + " |"
     while (contador < numLinhas){
         tabuleiro += "\n|"
         var contaColunas = 0
@@ -162,7 +161,7 @@ fun inserirBarco(numLinhas: Int, numColunas: Int) {
 /**
  * Pede o número de linhas e o número de colunas do tabuleiro ao utilizador
  * e retorna uma ‘string’ com o tabuleiro e com os barcos.
- * @return String com o tabuleiro, se este for
+ * @return ‘String’ com o tabuleiro, se este for valido
  */
 fun tabuleiro(): String?{
     var numLinhas: Int?
@@ -176,7 +175,7 @@ fun tabuleiro(): String?{
             println("Quantas linhas?")
             numLinhas = readLine()?.toIntOrNull()
             if (numLinhas == null){
-                println("Número de linhas invalidas, tente novamente")
+                println("!!! Número de linhas invalidas, tente novamente")
             }
             if (numLinhas == -1){
                 return null
@@ -186,12 +185,16 @@ fun tabuleiro(): String?{
             println("Quantas colunas?")
             numColunas = readLine()?.toIntOrNull()
             if (numColunas == null){
-                println("Número de colunas invalidas, tente novamente")
+                println("!!! Número de colunas invalidas, tente novamente")
             }
             if (numColunas == -1) {
                 return null
             }
         } while (numColunas == null)
+        if (!tamanhoTabuleiroValido(numLinhas, numColunas))
+        {
+            println("\n!!! Tamanho de tabuleiro invalido, tente novamente\n")
+        }
     } while (!tamanhoTabuleiroValido(numLinhas, numColunas))
     if (numLinhas == null || numColunas == null){
         return null
@@ -213,3 +216,4 @@ fun main() {
         }
     }
 }
+
