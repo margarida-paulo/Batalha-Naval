@@ -1,3 +1,98 @@
+var numLinhas = -1
+var numColunas = -1
+var tabuleiroHumano: Array<Array<Char?>> = emptyArray()
+var tabuleiroComputador: Array<Array<Char?>> = emptyArray()
+var tabuleiroPalpitesDoHumano: Array<Array<Char?>> = emptyArray()
+var tabuleiroPalpitesDoComputador: Array<Array<Char?>> = emptyArray()
+
+// Funcoes parte 2
+
+fun calculaNumNavios(numLinhas: Int, numColunas: Int): Array<Int>{
+    return emptyArray()
+}
+
+fun criaTabuleiroVazio(numLinhas: Int, numColunas: Int): Array<Array<Char?>>{
+    return emptyArray()
+}
+
+fun coordenadaContida(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int): Boolean{
+    return true
+}
+
+fun limparCoordenadasVazias(coordenadas: Array<Pair<Int,Int>>): Array<Pair<Int,Int>>{
+    return emptyArray()
+}
+
+fun juntarCoordenadas(listaCoordenadas: Array<Pair<Int,Int>>, coordenada: Array<Pair<Int,Int>>): Array<Pair<Int,Int>>{
+    return emptyArray()
+}
+
+fun gerarCoordenadasNavio(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int, orientacao: String, dimensao: Int): Array<Pair<Int,Int>>{
+    return emptyArray()
+}
+
+fun gerarCoordenadasFronteira(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int, orientacao: String, dimensao: Int): Array<Pair<Int,Int>>{
+    // Recomendado usar coordenadaContida(), limparCoordenadasVazias() e juntarCoordenadas()
+    // Mais difícil do programa
+    return emptyArray()
+}
+
+fun estaLivre(tabuleiro: Array<Array<Char?>>, coordenadas: Array<Pair<Int, Int>>): Boolean {
+    return false
+}
+
+fun insereNavioSimples(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int, dimensao: Int): Boolean{
+    // Insere o navio na orientacao este
+    return false
+}
+
+fun insereNavio(linha: Int, coluna: Int, orientacao: String, dimensao: Int): Boolean{
+    // Recomendado usar gerarCoordenadasNavio() e gerarCoordenadasFronteira(), depois o
+    // juntarCoordenadas(), depois o estaLivre().
+    return false
+}
+
+fun preencheTabuleiroComputador(tabuleiro: Array<Array<Char?>>, navios: Array<Int>): Array<Array<Char?>>{
+    return emptyArray()
+}
+
+fun navioCompleto(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int): Boolean{
+    return false
+}
+
+fun obtemMapa(tabuleiro: Array<Array<Char?>>, tabuleiroHumano: Boolean): Array<String>{
+    return emptyArray()
+}
+
+fun lancaTiro(tabuleiroReal: Array<Array<Char?>>, tabuleiroPalpites: Array<Array<Char?>>, coordenadas: Pair<Int,Int>): String{
+    // Se for um humano a lancar
+    return ""
+}
+
+fun geraTiroComputador(tabuleiro: Array<Array<Char?>>): Pair<Int, Int>{
+    return Pair(0,0)
+}
+
+fun contarNaviosDeDimensao(tabuleiro: Array<Array<Char?>>, dimensao: Int): Int{
+    return 0
+}
+
+fun venceu(tabuleiro: Array<Array<Char?>>): Boolean{
+    // Recomendado usar calculaNumNavios() e contarNaviosDeDimensao()
+    return false
+}
+
+fun lerJogo(ficheiro: String, tipoTabuleiro: Int):Array<Char?>{
+    return emptyArray()
+}
+
+fun gravarJogo(ficheiro: String, tabuleiroHumano: Array<Array<Char?>>, tabuleiroPalpitesDoHumano: Array<Array<Char?>>,
+               tabuleiroComputador: Array<Array<Char?>>, tabuleiroPalpitesDoComputador: Array<Array<Char?>>){
+
+}
+
+// Funcoes parte 1
+
 /**
  * Cria a legenda horizontal consoante o número de colunas.
  * Validada pelo Drop Project, nao alterar.
@@ -27,10 +122,12 @@ fun criaLegendaHorizontal(numColunas: Int): String{
 fun tamanhoTabuleiroValido(numLinhas: Int?, numColunas: Int?): Boolean{
     return when{
         numLinhas == null || numColunas == null -> false
-        numLinhas == 5 && numColunas == 5 -> true
-        numLinhas == 7 && numColunas == 7 -> true
-        numLinhas == 8 && numColunas == 8 -> true
-        numLinhas == 10 && numColunas == 10 -> true
+        numLinhas != numColunas -> false
+        numLinhas == 4 -> true
+        numLinhas == 5 -> true
+        numLinhas == 7 -> true
+        numLinhas == 8 -> true
+        numLinhas == 10 -> true
         else -> false
     }
 }
@@ -42,9 +139,9 @@ fun tamanhoTabuleiroValido(numLinhas: Int?, numColunas: Int?): Boolean{
  * @param numLinhas Numero de linhas do tabuleiro.
  * @param numColunas Numero de colunas do tabuleiro.
  */
-fun processaCoordenadas(coordenadas: String?, numLinhas: Int, numColunas: Int): Boolean{
+fun processaCoordenadas(coordenadas: String?, numLinhas: Int, numColunas: Int): Pair<Int,Int>?{
     if (coordenadas == null){
-        return false
+        return null
     }
     val coordenada1: Int
     val coordenada2: Char
@@ -60,13 +157,13 @@ fun processaCoordenadas(coordenadas: String?, numLinhas: Int, numColunas: Int): 
             coordenada2 = coordenadas[2]
             separador = coordenadas[1]
         }
-        else -> return false
+        else -> return null
     }
     return when{
-        separador != ',' -> false
-        coordenada1 !in 1..numLinhas -> false
-        coordenada2 !in 'A'..'A' + numColunas - 1 -> false
-        else -> true
+        separador != ',' -> null
+        coordenada1 !in 1..numLinhas -> null
+        coordenada2 !in 'A'..'A' + numColunas - 1 -> null
+        else -> Pair(coordenada1, coordenada2.code - ('A' - 1).code)
     }
 }
 
@@ -110,8 +207,8 @@ fun escolhaOpcao(): Int{
  * @param numColunas Numero de colunas do tabuleiro.
  * @return ‘String’ com o tabuleiro de jogo.
  */
-fun criaTerreno(numLinhas: Int, numColunas: Int): String{
-    var contador = 0
+fun criaTerreno(numLinhas: Int, numColunas: Int): Array<String>{
+/*    var contador = 0
     var tabuleiro = "\n| " + criaLegendaHorizontal(numColunas) + " |"
     while (contador < numLinhas){
         tabuleiro += "\n|"
@@ -124,6 +221,18 @@ fun criaTerreno(numLinhas: Int, numColunas: Int): String{
         contador++
     }
     tabuleiro += "\n"
+    return tabuleiro*/
+    val tabuleiro: Array<String> = Array(numLinhas + 1){""}
+    tabuleiro[0] = "| " + criaLegendaHorizontal(numColunas) + " |"
+    for (linha in 1..numLinhas){
+        for (coluna in 0..numColunas - 1){
+            tabuleiro[linha] += "|   "
+            if (coluna == numColunas - 1){
+                tabuleiro[linha] += "|"
+            }
+        }
+        tabuleiro[linha] += " $linha"
+    }
     return tabuleiro
 }
 
@@ -141,10 +250,10 @@ fun inserirBarco(numLinhas: Int, numColunas: Int) {
         if (coordenadas != null && coordenadas == "-1"){
             return
         }
-        if (!processaCoordenadas(coordenadas, numLinhas, numColunas)) {
+        if (processaCoordenadas(coordenadas, numLinhas, numColunas) == null) {
             println("!!! Coordenadas invalidas, tente novamente")
         }
-    } while (!processaCoordenadas(coordenadas, numLinhas, numColunas))
+    } while (processaCoordenadas(coordenadas, numLinhas, numColunas) == null)
     println("Insira a orientacao do navio:")
     do {
         println("Orientacao? (N, S, E, O)")
@@ -163,7 +272,7 @@ fun inserirBarco(numLinhas: Int, numColunas: Int) {
  * e retorna uma ‘string’ com o tabuleiro e com os barcos.
  * @return ‘String’ com o tabuleiro, se este for valido
  */
-fun tabuleiro(): String?{
+fun tabuleiro(): Array<String>?{
     var numLinhas: Int?
     var numColunas: Int?
     println()
@@ -200,7 +309,9 @@ fun tabuleiro(): String?{
         return null
     }
     val tabuleiro = criaTerreno(numLinhas, numColunas)
-    println(tabuleiro)
+    for(linha in 0.. numLinhas){
+        println(tabuleiro[linha])
+    }
     inserirBarco(numLinhas, numColunas)
     return (tabuleiro)
 }
