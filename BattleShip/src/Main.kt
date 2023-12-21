@@ -7,6 +7,7 @@ var tabuleiroHumano: Array<Array<Char?>> = emptyArray()
 var tabuleiroComputador: Array<Array<Char?>> = emptyArray()
 var tabuleiroPalpitesDoHumano: Array<Array<Char?>> = emptyArray()
 var tabuleiroPalpitesDoComputador: Array<Array<Char?>> = emptyArray()
+const val EXEMPLO = "Coordenadas? (ex: 6,G)"
 
 // Funcoes parte 1
 
@@ -36,6 +37,7 @@ fun tamanhoTabuleiroValido(numLinhas: Int?, numColunas: Int?): Boolean{
  * @param coordenadas Coordenadas do barco a colocar, no formato (coordenada1,coordenada2).
  * @param numLinhas Numero de linhas do tabuleiro.
  * @param numColunas Numero de colunas do tabuleiro.
+ * @return Pair das coordenadas inseridas, ou, se as coordenadas não forem válidas, null.
  */
 fun processaCoordenadas(coordenadas: String?, numLinhas: Int, numColunas: Int): Pair<Int,Int>?{
     if (coordenadas == null){
@@ -162,7 +164,7 @@ fun criaTerreno(numLinhas: Int, numColunas: Int): Array<String>{
 fun inserirBarco(numLinhas: Int, numColunas: Int) {
     println("Insira as coordenadas do navio:")
     do {
-        println("Coordenadas? (ex: 6,G)")
+        println(EXEMPLO)
         val coordenadas = readLine()
         if (coordenadas != null && coordenadas == "-1"){
             return
@@ -184,16 +186,110 @@ fun inserirBarco(numLinhas: Int, numColunas: Int) {
     } while (orientacao != "N" && orientacao != "S" && orientacao != "E" && orientacao != "O")
 }
 
+/**
+ * Imprime o tabuleiro passado como parâmetro.
+ */
+fun imprimeTabuleiro(tabuleiro: Array<Array<Char?>>, tabuleiroReal: Boolean){
+    val tabuleiroImpresso = obtemMapa(tabuleiro, tabuleiroReal)
+    for (linha in 0..tabuleiro.size){
+        println(tabuleiroImpresso[linha])
+    }
+}
+
+/**
+ * Pede os dados de um determinado navio repetidamente até que estes sejam válidos e coloca o barco no tabuleiro que
+ * recebeu como parâmetro, retornando esse tabuleiro.
+ * @param tabuleiro Tabuleiro real do humano onde o navio sera inserido
+ * @param dimensao Dimensao do navio a colocar
+ */
+fun colocarBarco(tabuleiro: Array<Array<Char?>>, dimensao: Int): Array<Array<Char?>>{
+    var parCoordenadas: Pair<Int,Int>?
+    val tipoNavio = when(dimensao){
+        1 -> "submarino"
+        2 -> "contra-torpedeiro"
+        3 -> "navio-tanque"
+        else -> "porta-avioes"
+    }
+        do {
+            do {
+                println("Insira as coordenadas de um $tipoNavio:")
+                println(EXEMPLO)
+                val coordenadas = readLine()
+                if (coordenadas != null && coordenadas == "-1"){
+                    return emptyArray()
+                }
+                parCoordenadas = processaCoordenadas(coordenadas, numLinhas, numColunas)
+                if (parCoordenadas == null) {
+                    println("!!! Posicionamento invalido, tente novamente")
+                }
+            } while (parCoordenadas == null)
+            var orientacao: String? = "E"
+            if (dimensao != 1){
+                println("Insira a orientacao do navio:")
+                do {
+                    println("Orientacao? (N, S, E, O)")
+                    orientacao = readLine()
+                    if (orientacao != null && orientacao == "-1"){
+                        return emptyArray()
+                    }
+                    if (orientacao != "N" && orientacao != "S" && orientacao != "E" && orientacao != "O") {
+                        println("!!! Orientacao invalida, tente novamente")
+                    }
+                } while (orientacao != "N" && orientacao != "S" && orientacao != "E" && orientacao != "O")
+            }
+            val invalido = !insereNavio(tabuleiroHumano, parCoordenadas.first, parCoordenadas.second, orientacao!!, dimensao)
+            if (invalido){
+                println("!!! Posicionamento invalido, tente novamente")
+            }
+        } while (invalido)
+    return tabuleiro
+}
+
+/**
+ * Calcula o número de navios que um determinado tabuleiro deve ter, e chama o colocarBarco() para cada um dos tipos de
+ * navios até o total desse tipo de navios estar colocado no tabuleiro.
+ * @param tabuleiro Tabuleiro real do humano, onde os navios serão inseridos.
+ * @return Tabuleiro real do humano preenchido com os navios que aquele tamanho de tabuleiro deve incluir.
+ */
+fun preencherTabuleiroHumano(tabuleiro:Array<Array<Char?>>): Array<Array<Char?>>{
+    val numNavios = calculaNumNavios(tabuleiro.size, tabuleiro[0].size)
+    val numSubmarinos = numNavios[0]
+    val numContraTorpedeiros = numNavios[1]
+    val numNaviosTanque = numNavios[2]
+    val numPortaAvioes = numNavios[3]
+    for (submarino in 1..numSubmarinos){
+        if (colocarBarco(tabuleiro, 1).contentEquals(emptyArray())){
+            return tabuleiroHumano
+        }
+        imprimeTabuleiro(tabuleiroHumano, true)
+    }
+    for (contraTorpedeiro in 1..numContraTorpedeiros){
+        colocarBarco(tabuleiro, 2)
+        imprimeTabuleiro(tabuleiroHumano, true)
+
+    }
+    for (navioTanque in 1..numNaviosTanque){
+        colocarBarco(tabuleiro, 3)
+        imprimeTabuleiro(tabuleiroHumano, true)
+    }
+    for (portaAvioes in 1..numPortaAvioes){
+        colocarBarco(tabuleiro, 4)
+        imprimeTabuleiro(tabuleiroHumano, true)
+    }
+    return tabuleiroHumano
+}
 // Funcoes parte 2
 
 /**
- * Pede o número de linhas e o número de colunas do tabuleiro ao utilizador
- * e retorna uma ‘string’ com o tabuleiro e com os barcos.
- * @return ‘String’ com o tabuleiro, se este for valido
+ * Pede o número de linhas e o número de colunas do tabuleiro ao utilizador. Chama o criaTabuleiroVazio() para criar um
+ * tabuleiro com esse numero de linhas e de colunas, e envia esse tabuleiro para o preencherTabuleiroHumano para que
+ * este possa ser preenchido com os navios que deve ter. Chama o preencherTabuleiroComputador() para criar um tabuleiro
+ * do computador com as mesmas dimensões, e cria também os dois tabuleiros de palpites para que o jogo possa ser jogado.
+ * @return Array<Array<Char?>> com o tabuleiro real do humano.
  */
-fun tabuleiro(): Array<String>?{
-    var numLinhas: Int?
-    var numColunas: Int?
+fun tabuleiros(): Array<Array<Char?>>{
+    var totalLinhas: Int?
+    var totalColunas: Int?
     println()
     println("> > Batalha Naval < <")
     println()
@@ -201,42 +297,75 @@ fun tabuleiro(): Array<String>?{
     do {
         do {
             println("Quantas linhas?")
-            numLinhas = readLine()?.toIntOrNull()
-            if (numLinhas == null){
+            totalLinhas = readLine()?.toIntOrNull()
+            if (totalLinhas == null){
                 println("!!! Número de linhas invalidas, tente novamente")
             }
-            if (numLinhas == -1){
-                return null
+            if (totalLinhas == -1){
+                return emptyArray()
             }
-        } while (numLinhas == null)
+        } while (totalLinhas == null)
         do {
             println("Quantas colunas?")
-            numColunas = readLine()?.toIntOrNull()
-            if (numColunas == null){
+            totalColunas = readLine()?.toIntOrNull()
+            if (totalColunas == null){
                 println("!!! Número de colunas invalidas, tente novamente")
             }
-            if (numColunas == -1) {
-                return null
+            if (totalColunas == -1) {
+                return emptyArray()
             }
-        } while (numColunas == null)
-        if (!tamanhoTabuleiroValido(numLinhas, numColunas))
+        } while (totalColunas == null)
+        if (!tamanhoTabuleiroValido(totalLinhas, totalColunas))
         {
             println("\n!!! Tamanho de tabuleiro invalido, tente novamente\n")
         }
-    } while (!tamanhoTabuleiroValido(numLinhas, numColunas))
-    if (numLinhas == null || numColunas == null){
-        return null
+    } while (!tamanhoTabuleiroValido(totalLinhas, totalColunas))
+    if (totalLinhas == null || totalColunas == null){
+        return emptyArray()
     }
-    val tabuleiro = criaTerreno(numLinhas, numColunas)
-    for(linha in 0.. numLinhas){
-        println(tabuleiro[linha])
+    numLinhas = totalLinhas
+    numColunas = totalColunas
+    tabuleiroHumano = criaTabuleiroVazio(numLinhas, numColunas)
+    imprimeTabuleiro(tabuleiroHumano, true)
+    tabuleiroHumano = preencherTabuleiroHumano(tabuleiroHumano)
+    tabuleiroComputador = Array(numLinhas){Array(numColunas){null} }
+    preencheTabuleiroComputador(tabuleiroComputador, calculaNumNavios(numLinhas, numColunas))
+    tabuleiroPalpitesDoComputador = criaTabuleiroVazio(numLinhas, numColunas)
+    tabuleiroPalpitesDoHumano = criaTabuleiroVazio(numLinhas, numColunas)
+    var verMapa: String?
+    do {
+        println("Pretende ver o mapa gerado para o Computador? (S/N)")
+        verMapa = readLine()
+        if (verMapa == "-1"){
+            return tabuleiroHumano
+        }
+        else if ((verMapa == null || (verMapa != "S" && verMapa != "N"))){
+            println("!!! Resposta invalida.")
+        }
+
+    } while (verMapa == null || (verMapa != "S" && verMapa != "N"))
+    if (verMapa == "S"){
+        imprimeTabuleiro(tabuleiroComputador, true)
     }
-    inserirBarco(numLinhas, numColunas)
-    return (tabuleiro)
+    return (tabuleiroHumano)
 }
 
-fun calculaNumNavios(numLinhas: Int, numColunas: Int): Array<Int>{
-    return emptyArray()
+/**
+ * Retorna o numero de navios de cada tipo de navio que um tabuleiro com um determinado tamanho deverá ter.
+ * @param numLinhas Numero inteiro com o numero de linhas do tabuleiro
+ * @param numColunas Numero inteiro com o numero de colunas do tabuleiro
+ * @return Array de inteiros com o número de cada tipo de navios, pela ordem: submarinos (1), contra-torpedeiros (2),
+ * navios-tanque (3), porta-avioes (4).
+ */
+fun calculaNumNavios(numLinhas: Int, numColunas: Int): Array<Int> {
+    return when {
+        numLinhas == 4 && numColunas == 4 -> arrayOf(2,0,0,0)
+        numLinhas == 5 && numColunas == 5 -> arrayOf(1,1,1,0)
+        numLinhas == 7 && numColunas == 7 -> arrayOf(2,1,1,1)
+        numLinhas == 8 && numColunas == 8 -> arrayOf(2,2,1,1)
+        numLinhas == 10 && numColunas == 10 -> arrayOf(3,2,1,1)
+        else -> emptyArray()
+    }
 }
 
 /**
@@ -249,9 +378,24 @@ fun criaTabuleiroVazio(numLinhas: Int, numColunas: Int): Array<Array<Char?>>{
     return Array(numLinhas){Array(numColunas){null}}
 }
 
-fun coordenadaContida(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int): Boolean{
-    return if (linha !in 1..tabuleiro.size || coluna !in 1..tabuleiro[0].size) false else true
+/**
+ * Recebe coordenadas de um ponto, e verifica se este esta contido no tabuleiro.
+ * @param tabuleiro Tabuleiro onde verifica se a coordenada esta contida.
+ * @param linha Coordenada 1 a verificar, correspondente à linha.
+ * @param coluna Coordenada 2 a verificar, correspondente à coluna.
+ * @return True, se as coordenadas estiverem contidas no tabuleiro, ou false, se nao estiverem.
+ */
+fun coordenadaContida(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int): Boolean {
+    if ((linha in 1..tabuleiro.size) && (coluna in 1..tabuleiro[linha - 1].size)) {
+        return true
+    } else {
+        return false
+    }
 }
+
+/*fun coordenadaContida(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int): Boolean {
+    return !(linha !in 1..tabuleiro.size || coluna !in 1..tabuleiro[0].size)
+}*/
 
 fun limparCoordenadasVazias(coordenadas: Array<Pair<Int,Int>>): Array<Pair<Int,Int>> {
     var count = 0
@@ -261,29 +405,19 @@ fun limparCoordenadasVazias(coordenadas: Array<Pair<Int,Int>>): Array<Pair<Int,I
         }
     }
     val validos = Array(count){Pair(0,0)}
-    var posicaoCoordenadas = 0
-    for (posicaoValidos in 0 until validos.size) {
-        while (coordenadas[posicaoCoordenadas] == Pair(0,0)) {
-            posicaoCoordenadas++
+    var elemento = 0
+    for (posicao in 0 until validos.size) {
+        while (coordenadas[elemento] == Pair(0,0)) {
+            elemento++
         }
-        validos[posicaoValidos] = coordenadas[posicaoCoordenadas]
-        posicaoCoordenadas++;
+        validos[posicao] = coordenadas[elemento]
+        elemento++
     }
     return validos
 }
 
-fun juntarCoordenadas(listaCoordenadas: Array<Pair<Int,Int>>, coordenada: Array<Pair<Int,Int>>): Array<Pair<Int,Int>>{
-    val coordenadas = Array(listaCoordenadas.size + coordenada.size){Pair(0,0)}
-    var posicao = 0
-    for (elemento in listaCoordenadas){
-        coordenadas[posicao] = elemento
-        posicao++
-    }
-    for (elemento in coordenada){
-        coordenadas[posicao] = elemento
-        posicao++
-    }
-    return coordenadas
+fun juntarCoordenadas(listaCoordenadas: Array<Pair<Int,Int>>, coordenada: Array<Pair<Int,Int>>): Array<Pair<Int,Int>> {
+    return listaCoordenadas + coordenada
 }
 
 /**
@@ -382,19 +516,14 @@ fun estaLivre(tabuleiro: Array<Array<Char?>>, coordenadas: Array<Pair<Int, Int>>
  * a funcao retorna true.
  */
 fun insereNavioSimples(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int, dimensao: Int): Boolean{
+    val coordenadasNavio = gerarCoordenadasNavio(tabuleiro, linha, coluna, "E", dimensao)
     val coordenadasFronteira = gerarCoordenadasFronteira(tabuleiro, linha, coluna, "E", dimensao)
-    for (coordenadas in coordenadasFronteira){
-        if (tabuleiro[coordenadas.first - 1][coordenadas.second - 1] != null){
-            return false
+    if (!estaLivre(tabuleiro, coordenadasFronteira) || !estaLivre(tabuleiro, coordenadasNavio) || coordenadasNavio.contentEquals(emptyArray())){
+        return false
+    } else {
+        for (coordenadas in coordenadasNavio) {
+            tabuleiro[coordenadas.first - 1][coordenadas.second - 1] = dimensao.digitToChar()
         }
-    }
-    for (casa in 0 until dimensao){
-        if (!coordenadaContida(tabuleiro, linha, coluna + casa)){
-            return false
-        }
-    }
-    for (casa in 0 until dimensao){
-        tabuleiro[linha - 1][coluna + casa - 1] = dimensao.digitToChar()
     }
     return true
 }
@@ -402,11 +531,52 @@ fun insereNavioSimples(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int, 
 fun insereNavio(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int, orientacao: String, dimensao: Int): Boolean{
     // Recomendado usar gerarCoordenadasNavio() e gerarCoordenadasFronteira(), depois o
     // juntarCoordenadas(), depois o estaLivre().
-    return false
+    if (orientacao == "E"){
+        return insereNavioSimples(tabuleiro, linha, coluna, dimensao)
+    }
+    val coordenadasNavio = gerarCoordenadasNavio(tabuleiro, linha, coluna, orientacao, dimensao)
+    val coordenadasFronteira = gerarCoordenadasFronteira(tabuleiro, linha, coluna, orientacao, dimensao)
+    if (!estaLivre(tabuleiro, coordenadasFronteira) || !estaLivre(tabuleiro, coordenadasNavio) || coordenadasNavio.contentEquals(emptyArray())){
+        return false
+    }else {
+        for (coordenadas in coordenadasNavio){
+            tabuleiro[coordenadas.first - 1][coordenadas.second - 1] = dimensao.digitToChar()
+        }
+    }
+    return true
+}
+
+fun insereNavioRandom(tabuleiro: Array<Array<Char?>>, dimensaoNavio: Int){
+    do {
+        val randomizer = (1..10)
+        val linha = randomizer.random() % tabuleiro.size
+        val coluna = randomizer.random() % tabuleiro[0].size
+        val orientacao = when (randomizer.random() % 4){
+            0 -> "N"
+            1 -> "S"
+            2 -> "O"
+            else -> "E"
+        }
+    } while (!insereNavio(tabuleiro, linha + 1, coluna + 1, orientacao, dimensaoNavio))
 }
 
 fun preencheTabuleiroComputador(tabuleiro: Array<Array<Char?>>, navios: Array<Int>){
-    return
+    val numSubmarinos = navios[0]
+    val numContraTorpedeiros = navios[1]
+    val numNaviosTanque = navios[2]
+    val numPortaAvioes = navios[3]
+    for (submarino in 1 .. numSubmarinos){
+        insereNavioRandom(tabuleiro, 1)
+    }
+    for (contraTorpedeiro in 1 .. numContraTorpedeiros){
+        insereNavioRandom(tabuleiro, 2)
+    }
+    for (navioTanque in 1..numNaviosTanque){
+        insereNavioRandom(tabuleiro, 3)
+    }
+    for (portaAvioes in 1 .. numPortaAvioes){
+        insereNavioRandom(tabuleiro, 4)
+    }
 }
 
 fun navioCompleto(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int): Boolean{
@@ -455,11 +625,66 @@ fun lancarTiro(tabuleiroReal: Array<Array<Char?>>, tabuleiroPalpites: Array<Arra
 }
 
 fun geraTiroComputador(tabuleiroPalpitesComputador: Array<Array<Char?>>): Pair<Int, Int>{
-    return Pair(0,0)
+    val coordenadas = Array(tabuleiroPalpitesComputador.size * tabuleiroPalpitesComputador.size){Pair(0,0)}
+    var casa = 0
+    for (linha in 0 until tabuleiroPalpitesComputador.size){
+        for (coluna in 0 until tabuleiroPalpitesComputador[0].size){
+            if (tabuleiroPalpitesComputador[linha][coluna] == null){
+                coordenadas[casa] = Pair(linha + 1, coluna + 1)
+                casa++
+            }
+        }
+    }
+    val coordenadasNull = limparCoordenadasVazias(coordenadas)
+    return coordenadasNull.random()
 }
 
+
+fun copiaMatriz(matriz: Array<Array<Char?>>): Array<Array<Char?>>{
+    val copiaMatriz: Array<Array<Char?>> = Array(matriz.size){arrayOf(null)}
+    for (linha in 0 until matriz.size){
+        copiaMatriz[linha] = Array(matriz[linha].size){null}
+        for (coluna in 0 until matriz[linha].size){
+            copiaMatriz[linha][coluna] = matriz[linha][coluna]
+        }
+    }
+    return copiaMatriz
+}
 fun contarNaviosDeDimensao(tabuleiro: Array<Array<Char?>>, dimensao: Int): Int{
-    return 0
+    val mapa = copiaMatriz(tabuleiro)
+    var total = 0
+    for (linha in 0 until tabuleiro.size){
+        for (coluna in 0 until tabuleiro[0].size){
+            if (mapa[linha][coluna] != null){
+                var contagem = 0
+                for (i in 0 until dimensao){
+                    if (coluna + i < mapa[0].size && mapa[linha][coluna + i] == dimensao.digitToChar()){
+                        contagem++
+                    }
+                }
+                if (contagem == dimensao) {
+                    total++
+                    for (i in 0 until dimensao) {
+                        mapa[linha][coluna + i] = null
+                    }
+                }else {
+                    contagem = 0
+                    for (i in 0 until dimensao){
+                        if (linha + i < mapa.size && mapa[linha + i][coluna] == dimensao.digitToChar()){
+                            contagem++
+                        }
+                    }
+                    if (contagem == dimensao){
+                        total++
+                        for (i in 0 until dimensao) {
+                            mapa[linha + i][coluna] = null
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return total
 }
 
 fun venceu(tabuleiro: Array<Array<Char?>>): Boolean{
@@ -552,52 +777,67 @@ fun gravarJogo(ficheiro: String, tabuleiroRealHumano: Array<Array<Char?>>, tabul
     return
 }
 
+fun jogar(){
+    while (true){
+        imprimeTabuleiro(tabuleiroPalpitesDoHumano, false)
+        var coordenadas: Pair<Int,Int>?
+        do {
+            println("Indique a posição que pretende atingir")
+            println(EXEMPLO)
+            coordenadas = processaCoordenadas(readLine(), numLinhas, numColunas)
+            if (coordenadas == null || !estaLivre(tabuleiroPalpitesDoHumano, arrayOf(coordenadas))){
+                println("!!! Insira coordenadas que estejam contidas no tabuleiro e numa posição ainda não atingida, no " +
+                        "formato correto.\n")
+            }
+        } while (coordenadas == null || !estaLivre(tabuleiroPalpitesDoHumano, arrayOf(coordenadas)))
+        println(">>> HUMANO >>>${lancarTiro(tabuleiroComputador, tabuleiroPalpitesDoHumano, coordenadas)}")
+        val tiroComputador = geraTiroComputador(tabuleiroPalpitesDoComputador)
+        println("Computador lançou tiro para a posição $tiroComputador")
+        println(">>> COMPUTADOR >>>${lancarTiro(tabuleiroHumano, tabuleiroPalpitesDoComputador, tiroComputador)}")
+        var escolha: String?
+        do {
+            println("Prima enter para continuar")
+            escolha = readLine()
+            if (escolha == "-1"){
+                return
+            }
+        } while (escolha != "")
+    }
+}
+
 fun main() {
-/*    while (true) {
+
+    while(true)
+    {
+        val mapa = criaTabuleiroVazio(5,5)
+        preencheTabuleiroComputador(mapa, calculaNumNavios(mapa.size, mapa[0].size))
+        imprimeTabuleiro(mapa, true)
+        val bla = readLine()
+    }
+
+    while (true) {
         printMenuJogo()
         val opcao = escolhaOpcao()
         when (opcao) {
             0 -> return
-            2, 3, 4 -> println("!!! POR IMPLEMENTAR, tente novamente")
-            1 -> tabuleiro()
+            1 -> tabuleiros()
+            2 -> {
+                if (tabuleiroHumano.contentEquals(emptyArray())) {
+                    println("!!! Tem que primeiro definir o tabuleiro do jogo, tente novamente")
+                } else jogar()
+            }
+            3 -> if (tabuleiroHumano.contentEquals(emptyArray())){
+                println("!!! Tem que primeiro definir o tabuleiro do jogo, tente novamente")
+            } else {
+                var ficheiro: String?
+                do {
+                    println("Introduza o nome do ficheiro (ex: jogo.txt)")
+                    ficheiro = readLine()
+                } while (ficheiro == null)
+                gravarJogo(ficheiro, tabuleiroHumano, tabuleiroPalpitesDoHumano, tabuleiroComputador, tabuleiroPalpitesDoComputador)
+            }
+            4 -> println("!!! POR IMPLEMENTAR, tente novamente")
         }
-    }*/
-
-/*    val mapa = arrayOf(arrayOf(null,null,null,null,'3'), arrayOf(null, null, null,'1','3'), arrayOf(null,null,null,null,'3'), arrayOf('4','4','4','4',null), arrayOf('3','3','3',null,'1'))
-    var mapaDesenhado = obtemMapa(mapa, true)
-    println(mapaDesenhado[0])
-    println(mapaDesenhado[1])
-    println(mapaDesenhado[2])
-    println(mapaDesenhado[3])
-    println(mapaDesenhado[4])
-    println(mapaDesenhado[5])
-    println()
-    println(insereNavioSimples(mapa, 1,1, 2))
-    println()
-    mapaDesenhado = obtemMapa(mapa, true)
-    println(mapaDesenhado[0])
-    println(mapaDesenhado[1])
-    println(mapaDesenhado[2])
-    println(mapaDesenhado[3])
-    println(mapaDesenhado[4])
-    println(mapaDesenhado[5])*/
-
-    /*
-    val mapa = arrayOf(arrayOf(null,null,'1',null,'3'), arrayOf('2','2',null,'1','3'), arrayOf('1',null,'1',null,'3'), arrayOf('4','4','4','4',null), arrayOf('3','3','3',null,'1'))
-    val mapaDesenhado = obtemMapa(mapa, true)
-    println(mapaDesenhado[0])
-    println(mapaDesenhado[1])
-    println(mapaDesenhado[2])
-    println(mapaDesenhado[3])
-    println(mapaDesenhado[4])
-    println(mapaDesenhado[5])
-    gravarJogo("ficheiro.txt", mapa, mapa, mapa, mapa)
-    println(gerarCoordenadasNavio(mapa, 3,2, "E",3).contentToString())
-    println(limparCoordenadasVazias(arrayOf(Pair(0,0),Pair(1,2),Pair(0,0),Pair(3,4), Pair(5,6))).contentToString())
-    println(eliminarCoordenadasRepetidas(arrayOf(Pair(3,2),Pair(3,5),Pair(1,2)),arrayOf(Pair(4,5),Pair(0,9),Pair(3,5),Pair(9,10),Pair(3,2))).contentToString())
-    println(gerarCoordenadasFronteira(mapa, 1, 5, "S", 3).contentToString())
-
-
-     */
+    }
 }
 
