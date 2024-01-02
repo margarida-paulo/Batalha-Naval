@@ -794,7 +794,7 @@ fun lancarTiro(tabuleiroReal: Array<Array<Char?>>, tabuleiroPalpites: Array<Arra
  * sempre um tiro numa casa vazia, isto é, em que ainda não tenha sido lançado qualquer tiro.
  */
 fun geraTiroComputador(tabuleiroPalpitesComputador: Array<Array<Char?>>): Pair<Int, Int> {
-    val coordenadas = Array(tabuleiroPalpitesComputador.size * tabuleiroPalpitesComputador.size) { Pair(0, 0) }
+    val coordenadas = Array(tabuleiroPalpitesComputador.size * tabuleiroPalpitesComputador.size) {Pair(0, 0)}
     var casa = 0
     for (linha in 0 until tabuleiroPalpitesComputador.size) {
         for (coluna in 0 until tabuleiroPalpitesComputador[0].size) {
@@ -891,11 +891,6 @@ fun lerJogo(ficheiro: String, tipoTabuleiro: Int): Array<Array<Char?>> {
     val ficheiroGravado = File(ficheiro).readLines()
     numLinhas = ficheiroGravado[0][0].digitToInt()
     numColunas = ficheiroGravado[0][2].digitToInt()
-/*    val linhaParaChecar = when (tipoTabuleiro){
-        1 -> 4 until 4 + numLinhas
-        2 -> 7 + numLinhas until 7 + numLinhas * 2
-        3 ->
-    }*/
     val linhasNoFicheiro = 3 * tipoTabuleiro + 1 + numLinhas * (tipoTabuleiro - 1) until 3 * tipoTabuleiro + 1 + numLinhas * tipoTabuleiro
     val tabuleiro = criaTabuleiroVazio(numLinhas,numColunas)
     var linha = linhasNoFicheiro.min()
@@ -1033,9 +1028,9 @@ fun jogar() {
         } else {
             println()
             val tiroComputador = geraTiroComputador(tabuleiroPalpitesDoComputador)
-            println("Computador lançou tiro para a posição (${tiroComputador.first},${'A' + tiroComputador.first - 1})")
+            println("Computador lançou tiro para a posição (${tiroComputador.first},${'A' + tiroComputador.second - 1})")
             print(">>> COMPUTADOR >>>${lancarTiro(tabuleiroHumano, tabuleiroPalpitesDoComputador, tiroComputador)}")
-            if (navioCompleto(tabuleiroPalpitesDoHumano, coordenadas.first, coordenadas.second)) {
+            if (navioCompleto(tabuleiroPalpitesDoComputador, tiroComputador.first, tiroComputador.second)) {
                 print(" Navio ao fundo!")
             }
             println()
