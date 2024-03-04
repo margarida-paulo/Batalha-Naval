@@ -782,6 +782,7 @@ fun lancarTiro(tabuleiroReal: Array<Array<Char?>>, tabuleiroPalpites: Array<Arra
             return "Tiro num navio-tanque."
         }
         else -> {
+            tabuleiroPalpites[linha - 1][coluna - 1] = '4'
             return "Tiro num porta-avioes."
         }
 
